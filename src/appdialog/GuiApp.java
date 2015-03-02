@@ -21,7 +21,7 @@ import javax.swing.JFormattedTextField;
 import java.awt.Font;
 
 
-public class DialogSwing {
+public class GuiApp {
 
 	private JFrame frame;
 	private JComboBox<String> comboBox1;
@@ -56,7 +56,7 @@ public class DialogSwing {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					DialogSwing window = new DialogSwing();
+					GuiApp window = new GuiApp();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -69,7 +69,7 @@ public class DialogSwing {
 	/**
 	 * Create the application.
 	 */
-	public DialogSwing() {
+	public GuiApp() {
 		//scon = new SerialController();
 		comport = new ComPort();
 		initialize();
@@ -128,7 +128,7 @@ public class DialogSwing {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 531, 341);
+		frame.setBounds(100, 100, 531, 502);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
@@ -314,5 +314,39 @@ public class DialogSwing {
 		JButton btnOpenConfig = new JButton("Open Config");
 		btnOpenConfig.setBounds(53, 256, 110, 23);
 		frame.getContentPane().add(btnOpenConfig);
+		
+		JSeparator separator_1 = new JSeparator();
+		separator_1.setBounds(0, 308, 515, 2);
+		frame.getContentPane().add(separator_1);
+		
+		JLabel lblLightblueBean = new JLabel("LightBlue Bean");
+		lblLightblueBean.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblLightblueBean.setBounds(10, 321, 104, 14);
+		frame.getContentPane().add(lblLightblueBean);
+		
+		JButton btnNewButton = new JButton("Send White");
+		btnNewButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+			}
+		});
+		btnNewButton.setBounds(25, 375, 104, 23);
+		frame.getContentPane().add(btnNewButton);
+		
+		JButton btnSendBlack = new JButton("Send Black");
+		btnSendBlack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		btnSendBlack.setBounds(140, 375, 104, 23);
+		frame.getContentPane().add(btnSendBlack);
+		
+		JButton btnCheckConn = new JButton("Check Conn!");
+		btnCheckConn.setBounds(25, 341, 104, 23);
+		frame.getContentPane().add(btnCheckConn);
+		
+		JLabel lblNotFound = new JLabel("Not found!");
+		lblNotFound.setBounds(153, 345, 65, 14);
+		frame.getContentPane().add(lblNotFound);
+		
 	}
 }
