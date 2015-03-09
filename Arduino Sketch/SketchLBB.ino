@@ -3,13 +3,46 @@
 #include <SPI.h>
 #include <avr/wdt.h>
 
+#define Delay_ms(ms) delay(ms)
+#define Delay_us(us) delayMicroseconds(us)
+
+#define LED_ON  HIGH
+#define LED_OFF LOW
 
 // this holds all serial input until a full command is in it
 String cmdBuffer;
+// for the blink command
+bool doBlink = false;
+bool blinkState = true;
+int blinkCnt = 0;
+LedReading oldLed;
 
+const uint8_t HEADER_BYTE_1 = 0x03;
+const uint8_t HEADER_BYTE_2 = 0xA0;
+
+const int Pin_EPD_RESET = 0;
+const int Pin_EPD_CS = 1;
+const int Pin_EPD_BUSY = 2;
+
+
+
+
+
+
+static void SPI_put(byte c) {
+  SPI.transfer(c);
+}
 
 void setup()
 {
+
+  pinMode(Pin_EPD_CS, OUTPUT);
+  pinMode(Pin_EPD_RESET, OUTPUT);
+  //pinMode(Pin_EPD_BUSY, INPUT);
+
+  digitalWrite(Pin_EPD_RESET, LOW);
+  digitalWrite(Pin_EPD_CS, LOW);
+
   // initialize serial communication at 57600 bits per second:
   Serial.begin(57600);
 
@@ -89,6 +122,22 @@ void loop()
         Serial.println( String("< Blink ") + (doBlink?"ON":"OFF") + " >" );
       }
 
+      // White -> send white to display
+      else if ( !strncmp( buffer, "white", 5 ) )
+      {
+        Serial.println("Start!");
+        sendparameterstodisplay();
+        transmitdatatodisplay(0x00);
+      }
+
+      // White -> send white to display
+      else if ( !strncmp( buffer, "black", 5 ) )
+      {
+        Serial.println("Start!");
+        sendparameterstodisplay();
+        transmitdatatodisplay(0xFF);
+      }
+
       // everything else, just echo it
       else
       {
@@ -111,4 +160,58 @@ void loop()
   }
 
   Bean.sleep(50);
+}
+
+
+static void SPI_on() {
+  SPI.end();
+  SPI.begin();
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE0);
+  SPI.setClockDivider(SPI_CLOCK_DIV128);
+  Delay_us(10);
+}
+
+void sendparameterstodisplay(){
+  Serial.println("Sending parameters...");
+  //Resetea la TCon Board
+  digitalWrite(Pin_EPD_CS, LOW);
+  digitalWrite(Pin_EPD_RESET, LOW);
+  Delay_ms(10);
+  digitalWrite(Pin_EPD_CS, HIGH);
+  digitalWrite(Pin_EPD_RESET, HIGH);
+  Delay_ms(5);
+  digitalWrite(Pin_EPD_RESET, LOW);
+  Delay_ms(5);
+  digitalWrite(Pin_EPD_RESET, HIGH);
+  Delay_ms(19);
+
+  digitalWrite(Pin_EPD_CS, LOW);
+  SPI_on();
+  Delay_ms(1);
+  //Header Byte
+  SPI_put(HEADER_BYTE_1);
+  SPI_put(HEADER_BYTE_2);
+  Delay_ms(125);
+  //Serial.println("Sent!");
+}
+
+void transmitdatatodisplay(uint8_t data){
+  //Serial.println("Sending display...");
+  for(int i=0; i<176; i++){
+    for(int j=0; j<16 ; j++){
+      //int mult = 2*j;
+      SPI_put(data);
+      SPI_put(data);
+      Delay_us(50);
+    }
+    SPI_put(data);
+    //Last 8 bits
+    SPI_put(0x00);
+    Delay_ms(1);
+  }
+
+  digitalWrite(Pin_EPD_CS, HIGH);
+  Serial.println("Display Sent");
+  SPI.end();
 }
