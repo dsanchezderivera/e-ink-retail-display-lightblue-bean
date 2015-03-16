@@ -44,6 +44,8 @@ public class GuiApp {
 	private JLabel lblNewLabel_1;
 	
 	private Thread daemon = null;
+	
+	private SerialInterface serialInterface;
 
 	
 	
@@ -71,6 +73,8 @@ public class GuiApp {
 	 */
 	public GuiApp() {
 		//scon = new SerialController();
+		//System.setProperty("gnu.io.rxtx.SerialPorts", "/tmp/tty.LightBlue-Bean");
+		//System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/tty.LightBlue-Bean");
 		comport = new ComPort();
 		initialize();
 		rellenarBoxCom(comport.listPort());
@@ -101,9 +105,12 @@ public class GuiApp {
 	
 	
 	public void rellenarBoxCom(@SuppressWarnings("rawtypes") Enumeration ports) {
+		System.out.println("Detectando puertos...");
 	    while (ports.hasMoreElements()) {
 	      CommPortIdentifier port = (CommPortIdentifier) ports.nextElement();
 	      String type;
+	      
+	      System.out.println("Detectado puerto: "+ port.getName()+" -- Port type: "+ port.getPortType());
 	      switch (port.getPortType()) {
 	      case CommPortIdentifier.PORT_PARALLEL:
 	        type = "Parallel";
@@ -118,6 +125,10 @@ public class GuiApp {
 	      }
 	      System.out.println(port.getName() + ": " + type);
 	    }
+	    System.out.println("Añadiendo puerto manual... :xD");
+	    comboBox1.addItem("/tmp/tty.LightBlue-Bean");
+	    comboBox1.addItem("/dev/ttyS001");
+	    comboBox1.addItem("ttyS001");
 	  }
 	
 	
@@ -128,7 +139,7 @@ public class GuiApp {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 531, 502);
+		frame.setBounds(100, 100, 531, 462);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
@@ -141,6 +152,7 @@ public class GuiApp {
 		frame.getContentPane().add(comboBox1);
 		
 		JButton btnConectar = new JButton("Send Image");
+		btnConectar.setEnabled(false);
 		btnConectar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 					drawimage.setImage(comboImage.getSelectedIndex());
@@ -156,10 +168,10 @@ public class GuiApp {
 		JButton btnConectar_1 = new JButton("Connect");
 		btnConectar_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//findPort(comboBox1.getSelectedItem().toString());
 				portname = comboBox1.getSelectedItem().toString();
 				if(comport.connecttoPort(portname)){
 					serialport = comport.getSerialPort();
+					serialInterface = new SerialInterface(serialport);
 					lblConectado.setText("Conectado!");
 				}
 					
@@ -186,6 +198,7 @@ public class GuiApp {
 		
 
 		dispList = new JComboBox(dispInts);
+		dispList.setEnabled(false);
 		dispList.setBounds(199, 81, 89, 20);
 		dispList.setSelectedIndex(0);
 		frame.getContentPane().add(dispList);
@@ -217,6 +230,7 @@ public class GuiApp {
 		frame.getContentPane().add(btnBorrar);
 		
 		JButton btnEnviarEtq = new JButton("Send Label");
+		btnEnviarEtq.setEnabled(false);
 		btnEnviarEtq.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				ProductImg prodimg = new ProductImg(productos.get(comboProductsBox.getSelectedIndex()));
@@ -253,18 +267,22 @@ public class GuiApp {
 		frame.getContentPane().add(lblEtiqueta_2);
 		
 		comboBoxetiqueta1config = new JComboBox();
+		comboBoxetiqueta1config.setEnabled(false);
 		comboBoxetiqueta1config.setBounds(114, 187, 130, 20);
 		frame.getContentPane().add(comboBoxetiqueta1config);
 		
 		comboBoxetiqueta2config = new JComboBox();
+		comboBoxetiqueta2config.setEnabled(false);
 		comboBoxetiqueta2config.setBounds(114, 212, 130, 20);
 		frame.getContentPane().add(comboBoxetiqueta2config);
 		
 		checkBox = new JCheckBox("");
+		checkBox.setEnabled(false);
 		checkBox.setBounds(294, 186, 21, 23);
 		frame.getContentPane().add(checkBox);
 		
 		chckbxNewCheckBox = new JCheckBox("");
+		chckbxNewCheckBox.setEnabled(false);
 		chckbxNewCheckBox.setBounds(294, 211, 21, 23);
 		frame.getContentPane().add(chckbxNewCheckBox);
 		
@@ -273,6 +291,7 @@ public class GuiApp {
 		frame.getContentPane().add(lblHoraFeliz);
 		
 		JButton btnA = new JButton("Accept and Send");
+		btnA.setEnabled(false);
 		btnA.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				ArrayList<LabelContent> labels = new ArrayList<LabelContent>();
@@ -289,6 +308,7 @@ public class GuiApp {
 		frame.getContentPane().add(btnA);
 		
 		JButton btnParar = new JButton("Stop");
+		btnParar.setEnabled(false);
 		btnParar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				daemon.interrupt();
@@ -312,6 +332,7 @@ public class GuiApp {
 		frame.getContentPane().add(lblA);
 		
 		JButton btnOpenConfig = new JButton("Open Config");
+		btnOpenConfig.setEnabled(false);
 		btnOpenConfig.setBounds(53, 256, 110, 23);
 		frame.getContentPane().add(btnOpenConfig);
 		
@@ -341,6 +362,11 @@ public class GuiApp {
 		frame.getContentPane().add(btnSendBlack);
 		
 		JButton btnCheckConn = new JButton("Check Conn!");
+		btnCheckConn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				serialInterface.send("hello");
+			}
+		});
 		btnCheckConn.setBounds(25, 341, 104, 23);
 		frame.getContentPane().add(btnCheckConn);
 		
