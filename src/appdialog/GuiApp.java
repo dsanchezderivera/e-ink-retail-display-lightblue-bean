@@ -1,5 +1,6 @@
 package appdialog;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
@@ -18,7 +19,11 @@ import gnu.io.SerialPort;
 import javax.swing.JSeparator;
 import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
+
 import java.awt.Font;
+
+import javax.swing.JTextField;
+import javax.swing.JTextArea;
 
 
 public class GuiApp {
@@ -46,6 +51,7 @@ public class GuiApp {
 	private Thread daemon = null;
 	
 	private SerialInterface serialInterface;
+	private JTextField restURL;
 
 	
 	
@@ -139,7 +145,7 @@ public class GuiApp {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 531, 462);
+		frame.setBounds(100, 100, 531, 630);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
@@ -205,7 +211,7 @@ public class GuiApp {
 		
 		JLabel lblEtiqueta = new JLabel("Label:");
 		lblEtiqueta.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblEtiqueta.setBounds(199, 56, 65, 14);
+		lblEtiqueta.setBounds(209, 56, 65, 14);
 		frame.getContentPane().add(lblEtiqueta);
 		
 		JLabel lblImagen = new JLabel("Image:");
@@ -348,6 +354,14 @@ public class GuiApp {
 		JButton btnNewButton = new JButton("Send White");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				try {
+					HttpConnector conn = new HttpConnector(restURL.getText());
+					conn.sendWhite();
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		});
 		btnNewButton.setBounds(25, 375, 104, 23);
@@ -356,6 +370,14 @@ public class GuiApp {
 		JButton btnSendBlack = new JButton("Send Black");
 		btnSendBlack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				try {
+					HttpConnector conn = new HttpConnector(restURL.getText());
+					conn.sendBlack();
+				} catch (MalformedURLException ex) {
+					ex.printStackTrace();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
 		});
 		btnSendBlack.setBounds(140, 375, 104, 23);
@@ -373,6 +395,42 @@ public class GuiApp {
 		JLabel lblNotFound = new JLabel("Not found!");
 		lblNotFound.setBounds(153, 345, 65, 14);
 		frame.getContentPane().add(lblNotFound);
+		
+		restURL = new JTextField();
+		restURL.setText("http://localhost:9996");
+		restURL.setBounds(223, 318, 282, 20);
+		frame.getContentPane().add(restURL);
+		restURL.setColumns(10);
+		
+		JLabel lblUrl = new JLabel("URL");
+		lblUrl.setBounds(197, 321, 21, 14);
+		frame.getContentPane().add(lblUrl);
+		
+		JTextArea textArea = new JTextArea();
+		textArea.setBounds(10, 430, 497, 139);
+		frame.getContentPane().add(textArea);
+		
+		JLabel lblResponses = new JLabel("Responses");
+		lblResponses.setBounds(10, 409, 80, 14);
+		frame.getContentPane().add(lblResponses);
+		
+		JButton btnSendImage = new JButton("Send Image");
+		btnSendImage.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				drawimage.setImage(comboImage.getSelectedIndex());
+				try {
+					HttpConnector conn = new HttpConnector(restURL.getText());
+					conn.sendImage(drawimage);
+				} catch (MalformedURLException ex) {
+					ex.printStackTrace();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				SerialController scon = new SerialController(portname, comport,serialport, dispList.getSelectedIndex()+1,drawimage);
+			}
+		});
+		btnSendImage.setBounds(261, 375, 89, 23);
+		frame.getContentPane().add(btnSendImage);
 		
 	}
 }
