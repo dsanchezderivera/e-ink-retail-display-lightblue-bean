@@ -24,7 +24,7 @@ const int Pin_EPD_RESET = 0;
 const int Pin_EPD_CS = 1;
 const int Pin_EPD_BUSY = 2;
 
-
+byte linearray[33];
 
 
 
@@ -67,8 +67,8 @@ void loop()
       cmdBuffer.substring( 0, lineEnd ).toCharArray( buffer, 64 );
 
       // and remove it from the command buffer
-      cmdBuffer = cmdBuffer.substring( lineEnd+1, cmdBuffer.length()+1 );
-
+      //cmdBuffer = cmdBuffer.substring( lineEnd+1, cmdBuffer.length()+1 );
+        cmdBuffer = "";
       // now we can do something with the command...
 
       // hello ... world
@@ -126,18 +126,30 @@ void loop()
       else if ( !strncmp( buffer, "white", 5 ) )
       {
         Serial.println("Start!");
-        sendparameterstodisplay();
-        transmitdatatodisplay(0x00);
+        sendparameterstodisplay(false);
+        transmitdatatodisplay(0x00,176);
       }
 
       // White -> send white to display
       else if ( !strncmp( buffer, "black", 5 ) )
       {
         Serial.println("Start!");
-        sendparameterstodisplay();
-        transmitdatatodisplay(0xFF);
+        sendparameterstodisplay(false);
+        transmitdatatodisplay(0xFF, 176);
       }
-
+      // Image -> send Image to display
+      else if ( !strncmp( buffer, "image", 5 ) )
+      {
+        Delay_ms(500);
+        Serial.println("image command received... starting");
+        Serial.flush();
+        serialFlush();
+        Serial.print(0);
+        Serial.flush();
+        receiveLine();
+        sendparameterstodisplay(true);
+        transmitdatatodisplay(0x0F, 175);
+      }
       // everything else, just echo it
       else
       {
@@ -172,8 +184,28 @@ static void SPI_on() {
   Delay_us(10);
 }
 
-void sendparameterstodisplay(){
-  Serial.println("Sending parameters...");
+void serialFlush(){
+  while(Serial.available()) {
+    Serial.read();
+  }
+}
+
+int waitforbytes(){
+  while(true){
+    if(Serial.available() > 30)
+      return 1;
+  }
+}
+void receiveLine(){
+  waitforbytes();
+  for(int j=0; j<33; j++){
+    linearray[j] = Serial.read();
+  }
+  //serialFlush();
+}
+
+void sendparameterstodisplay(bool isImage){
+  //Serial.println("Sending parameters...");
   //Resetea la TCon Board
   digitalWrite(Pin_EPD_CS, LOW);
   digitalWrite(Pin_EPD_RESET, LOW);
@@ -193,25 +225,41 @@ void sendparameterstodisplay(){
   SPI_put(HEADER_BYTE_1);
   SPI_put(HEADER_BYTE_2);
   Delay_ms(125);
-  //Serial.println("Sent!");
-}
-
-void transmitdatatodisplay(uint8_t data){
-  //Serial.println("Sending display...");
-  for(int i=0; i<176; i++){
+  if(isImage){
     for(int j=0; j<16 ; j++){
       //int mult = 2*j;
-      SPI_put(data);
-      SPI_put(data);
+      SPI_put(linearray[2*j]);
+      SPI_put(linearray[(2*j)+1]);
       Delay_us(50);
     }
-    SPI_put(data);
+    SPI_put(linearray[32]);
     //Last 8 bits
     SPI_put(0x00);
     Delay_ms(1);
+  }
+}
+
+void transmitdatatodisplay(uint8_t data, int lines){
+  for(int i=0; i<lines; i++){
+    Serial.print(i);
+    Serial.flush();
+    receiveLine();
+    for(int j=0; j<16 ; j++){
+      //int mult = 2*j;
+      SPI_put(linearray[2*j]);
+      SPI_put(linearray[(2*j)+1]);
+      Delay_us(50);
+    }
+    SPI_put(linearray[32]);
+    //Last 8 bits
+    SPI_put(0x00);
+    Delay_ms(1);
+   // serialFlush();
   }
 
   digitalWrite(Pin_EPD_CS, HIGH);
   Serial.println("Display Sent");
   SPI.end();
+  Delay_ms(250);
+  serialFlush();
 }
