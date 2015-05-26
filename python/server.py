@@ -2,14 +2,17 @@ import SocketServer
 import BaseHTTPServer
 import serial
 
-ser = serial.Serial('/tmp/tty.LightBlue-Bean', 57600, timeout=0.25) # wait 250msec for bean
+# wait 250msec for bean
+ser = serial.Serial('/dev/cu.LightBlue-Bean', 57600, timeout=0.25)
+
 
 def isfloat(value):
-  try:
-    float(value)
-    return True
-  except ValueError:
-    return False
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -24,11 +27,13 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             ser.write("black\n")
             print "Sent!"
             self.send_response(200)
-    def do_POST(self):  # Receive a image in the post data 
+
+    def do_POST(self):  # Receive a image in the post data
         if self.path.startswith('/image'):
             self.send_response(200)
             varLen = int(self.headers['Content-Length'])
-            print "{} send a POST image with length: {}".format(self.client_address[0], varLen)
+            print "{} send a POST image with length: {}".format(
+                self.client_address[0], varLen)
             # The image data received
             data = self.rfile.read(varLen)
             print data
@@ -40,34 +45,37 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             print "Waiting response from LBB"
             enviando = True
             while enviando:
-                datarcv = ser.read(1)              # read one, blocking
-                n = ser.inWaiting()             # look if there is more
+                datarcv = ser.read(1)  # read one, blocking
+                n = ser.inWaiting()    # look if there is more
                 if n:
-                    datarcv = datarcv + ser.read(n)   # and get as much as possible
+                    # and get as much as possible
+                    datarcv = datarcv + ser.read(n)
                 if datarcv:
                     print "LBB response: {}".format(datarcv)
-                    #if float, send line
+                    # if float, send line
                     if isfloat(datarcv):
-                    # keep = keep+1
+                        # keep = keep+1
                         print "Is float"
                         print "Sending data packet: {}".format(datarcv)
-                        tmpString = data[((int(datarcv))*33):(((int(datarcv))*33)+33)]
+                        tmpString = data[((int(datarcv))*33):(((
+                            int(datarcv))*33)+33)]
                         # print tobits(tmpString)
                         ser.write(tmpString)
-                        if((int(datarcv))==174):
+                        if((int(datarcv)) == 174):
                             enviando = False
                     else:
                         print "Not float"
             print "Finish!"
-            
+
 
 def reader():
-        datarcv1 = ser.read(1)              # read one, blocking
-        n = ser.inWaiting()             # look if there is more
+        datarcv1 = ser.read(1)  # read one, blocking
+        n = ser.inWaiting()     # look if there is more
         if n:
             datarcv1 = datarcv1 + ser.read(n)   # and get as much as possible
         if datarcv1:
             print "LBB sent: {}".format(datarcv1)
+
 
 def tobits(s):
     result = []
@@ -79,12 +87,9 @@ def tobits(s):
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 9996
-
     # Create the server, binding to localhost on port 9999
     server = SocketServer.TCPServer((HOST, PORT), MyHandler)
     server.timeout = 0.25
     while 1:
         server.handle_request()
         reader()
-
-

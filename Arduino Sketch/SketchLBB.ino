@@ -47,7 +47,7 @@ void setup()
   Serial.begin(57600);
 
   // on readBytes, return after 25ms or when the buffer is full
-  Serial.setTimeout(25);
+  Serial.setTimeout(200);
 }
 
 
@@ -190,22 +190,18 @@ void serialFlush(){
   }
 }
 
-int waitforbytes(){
+/*int waitforbytes(){
   while(true){
     if(Serial.available() > 30)
       return 1;
   }
-}
+}*/
+  
 void receiveLine(){
-  waitforbytes();
-  for(int j=0; j<33; j++){
-    linearray[j] = Serial.read();
-  }
-  //serialFlush();
+  Serial.readBytes((char*)linearray,  33);
 }
 
 void sendparameterstodisplay(bool isImage){
-  //Serial.println("Sending parameters...");
   //Resetea la TCon Board
   digitalWrite(Pin_EPD_CS, LOW);
   digitalWrite(Pin_EPD_RESET, LOW);
@@ -227,7 +223,6 @@ void sendparameterstodisplay(bool isImage){
   Delay_ms(125);
   if(isImage){
     for(int j=0; j<16 ; j++){
-      //int mult = 2*j;
       SPI_put(linearray[2*j]);
       SPI_put(linearray[(2*j)+1]);
       Delay_us(50);
