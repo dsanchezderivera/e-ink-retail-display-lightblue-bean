@@ -18,7 +18,6 @@ import gnu.io.SerialPort;
 
 import javax.swing.JSeparator;
 import javax.swing.JCheckBox;
-import javax.swing.JFormattedTextField;
 
 import java.awt.Font;
 
@@ -36,6 +35,7 @@ public class GuiApp {
 	private JLabel lblConectado;
 	private Integer[] dispInts = { 1, 2};
 	DrawImage  drawimage = new DrawImage();
+	ProductImg prodImage = new ProductImg();
 	ArrayList<Product> productos;
 	private ComPort comport;
 	private SerialPort serialport;
@@ -426,11 +426,27 @@ public class GuiApp {
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
-				SerialController scon = new SerialController(portname, comport,serialport, dispList.getSelectedIndex()+1,drawimage);
 			}
 		});
 		btnSendImage.setBounds(261, 375, 89, 23);
 		frame.getContentPane().add(btnSendImage);
+		
+		JButton btnSendLabel = new JButton("Send Label");
+		btnSendLabel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				prodImage = new ProductImg(productos.get(comboProductsBox.getSelectedIndex()));
+				try {
+					HttpConnector conn = new HttpConnector(restURL.getText());
+					conn.sendImage(drawimage);
+				} catch (MalformedURLException ex) {
+					ex.printStackTrace();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
+		btnSendLabel.setBounds(370, 375, 89, 23);
+		frame.getContentPane().add(btnSendLabel);
 		
 	}
 }

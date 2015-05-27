@@ -76,7 +76,7 @@ public class HttpConnector {
 	}
 
 
-	public void sendImage(DrawImage drawimage) throws Exception  {
+	public void sendImage(Image image) throws Exception  {
 		URL obj = new URL(url+IMAGE);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		System.out.println("\nSending 'POST' request to URL : " + url);
@@ -92,7 +92,7 @@ public class HttpConnector {
 			int mult = count*33;
 			try {
 					for(int i=0;i<33;i++){
-						out.write(drawimage.getByte(mult+i));
+						out.write(image.getByte(mult+i));
 					}
 			} catch (IOException e) {
 				System.out.println("error");
@@ -122,5 +122,7 @@ public class HttpConnector {
 		System.out.println(response.toString());
 		
 	}
+	
+	
 
 }

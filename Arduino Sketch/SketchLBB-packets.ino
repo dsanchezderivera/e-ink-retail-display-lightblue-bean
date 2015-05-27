@@ -248,7 +248,7 @@ void sendparameterstodisplay(bool isImage){
 }
 
 void transmitdatatodisplay(uint8_t data, int lines){
-  for(int i=0; i<lines; i++){
+  for(int i=1; i<lines+1; i++){
     Serial.print(i);
     Serial.flush();
     receivePacket();

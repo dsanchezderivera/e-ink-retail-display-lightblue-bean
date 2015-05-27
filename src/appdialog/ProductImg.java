@@ -38,7 +38,7 @@ public class ProductImg extends Image{
 	public ProductImg(){
 		image = converttoint(createImagen());
 		//write("text.txt", imageproducto);
-		System.out.println("Done!");
+		//System.out.println("Done!");
 	}
 	
 	public ProductImg(String product, String mfact, double price, String pricexplain, String units, String url){
