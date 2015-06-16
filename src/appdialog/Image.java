@@ -9,5 +9,7 @@ abstract class Image {
 	public int getByte(int position){
 		return image[position];
 	}
-	
+	public int getNoRevByte(int position){
+		return image[position];
+	}
 }

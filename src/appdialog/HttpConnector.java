@@ -123,6 +123,48 @@ public class HttpConnector {
 		
 	}
 	
+	public void sendTest(Image image) throws Exception  {
+		URL obj = new URL(url+IMAGE);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		System.out.println("\nSending 'POST' request to URL : " + url);
+		// optional default is GET
+		con.setRequestMethod("POST");
+		con.setDoOutput(true);
+		con.setDoInput(true);
+		con.setRequestProperty("Content-Length", Integer.toString(4));
+		DataOutputStream out = new DataOutputStream(con.getOutputStream());
+		
+			try {
+					for(int i=0;i<5808;i++){
+						out.write(image.getNoRevByte(i));
+					}
+			} catch (IOException e) {
+				System.out.println("error");
+				e.printStackTrace();
+			}
+		
+		out.flush();
+	    out.close();
+		
+		int responseCode = con.getResponseCode();
+		
+		System.out.println("Response Code : " + responseCode);
+ 
+		BufferedReader in = new BufferedReader(
+		        new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+ 
+		while ((inputLine = in.readLine()) != null) {
+			response.append(inputLine);
+		}
+		in.close();
+ 
+		//print result
+		System.out.println(response.toString());
+		
+	}
+	
 	
 
 }

@@ -127,7 +127,7 @@ void loop()
       {
         Serial.println("Start!");
         sendparameterstodisplay(false);
-        transmitdatatodisplay(0x00,176);
+        transmitsetdatatodisplay(0x00,176);
       }
 
       // White -> send white to display
@@ -135,7 +135,7 @@ void loop()
       {
         Serial.println("Start!");
         sendparameterstodisplay(false);
-        transmitdatatodisplay(0xFF, 176);
+        transmitsetdatatodisplay(0xFF, 176);
       }
       // Image -> send Image to display
       else if ( !strncmp( buffer, "image", 5 ) )
@@ -148,7 +148,7 @@ void loop()
         Serial.flush();
         receiveLine();
         sendparameterstodisplay(true);
-        transmitdatatodisplay(0x0F, 175);
+        transmitdatatodisplay(175);
       }
       // everything else, just echo it
       else
@@ -234,7 +234,7 @@ void sendparameterstodisplay(bool isImage){
   }
 }
 
-void transmitdatatodisplay(uint8_t data, int lines){
+void transmitdatatodisplay(int lines){
   for(int i=0; i<lines; i++){
     Serial.print(i);
     Serial.flush();
@@ -256,5 +256,30 @@ void transmitdatatodisplay(uint8_t data, int lines){
   Serial.println("Display Sent");
   SPI.end();
   Delay_ms(250);
+  serialFlush();
+}
+
+void transmitsetdatatodisplay(uint8_t data, int lines){
+  for(int i=0; i<lines; i++){
+    for(int j=0; j<16 ; j++){
+      //int mult = 2*j;
+      SPI_put(data);
+      SPI_put(data);
+      Delay_us(50);
+    }
+    SPI_put(data);
+    //Last 8 bits
+    SPI_put(0x00);
+    Delay_ms(1);
+    //serialFlush();
+  }
+
+  digitalWrite(Pin_EPD_CS, HIGH);
+  Serial.println("Display Sent");
+  SPI.end();
+  Delay_ms(250);
+  serialFlush();
+  Delay_ms(1000);
+  digitalWrite(Pin_ON, LOW);
   serialFlush();
 }

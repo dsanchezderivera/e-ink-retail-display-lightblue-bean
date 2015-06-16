@@ -20,14 +20,13 @@ LedReading oldLed;
 const uint8_t HEADER_BYTE_1 = 0x03;
 const uint8_t HEADER_BYTE_2 = 0xA0;
 
-const int Pin_EPD_RESET = 0;
-const int Pin_EPD_CS = 1;
-const int Pin_EPD_BUSY = 2;
+const int Pin_EPD_RESET = 1;
+const int Pin_EPD_CS = 2;
+//const int Pin_EPD_BUSY = A1;
+const int Pin_ON = 0;
 
-char linearray[1155];
+byte linearray[33];
 
-int count=0;
-int n;
 
 
 
@@ -40,10 +39,12 @@ void setup()
 
   pinMode(Pin_EPD_CS, OUTPUT);
   pinMode(Pin_EPD_RESET, OUTPUT);
+  pinMode(Pin_ON, OUTPUT);
   //pinMode(Pin_EPD_BUSY, INPUT);
 
   digitalWrite(Pin_EPD_RESET, LOW);
   digitalWrite(Pin_EPD_CS, LOW);
+  digitalWrite(Pin_ON, LOW);
 
   // initialize serial communication at 57600 bits per second:
   Serial.begin(57600);
@@ -129,7 +130,7 @@ void loop()
       {
         Serial.println("Start!");
         sendparameterstodisplay(false);
-        transmitdatatodisplay(0x00,176);
+        transmitsetdatatodisplay(0x00,176);
       }
 
       // White -> send white to display
@@ -137,11 +138,12 @@ void loop()
       {
         Serial.println("Start!");
         sendparameterstodisplay(false);
-        transmitdatatodisplay(0xFF, 176);
+        transmitsetdatatodisplay(0xFF, 176);
       }
       // Image -> send Image to display
       else if ( !strncmp( buffer, "image", 5 ) )
       {
+        digitalWrite(Pin_ON, HIGH);
         Delay_ms(500);
         Serial.println("image command received... starting");
         Serial.flush();
@@ -150,7 +152,7 @@ void loop()
         Serial.flush();
         receiveLine();
         sendparameterstodisplay(true);
-        transmitdatatodisplay(0x0F, 5);
+        transmitdatatodisplay(175);
       }
       // everything else, just echo it
       else
@@ -172,7 +174,6 @@ void loop()
       blinkState = !blinkState;
     }
   }
-
   Bean.sleep(50);
 }
 
@@ -201,17 +202,6 @@ void serialFlush(){
   
 void receiveLine(){
   Serial.readBytes((char*)linearray,  33);
-}
-
-void receivePacket(){
-  while (count < 1155) {
-    n = Serial.readBytes(linearray+count, 1155-count);
-    if (n == 0) {
-      while (!Serial.available()) ; // wait
-    }
-    count = count + n;
-  }
-  Serial.println("packet received");
 }
 
 void sendparameterstodisplay(bool isImage){
@@ -247,23 +237,21 @@ void sendparameterstodisplay(bool isImage){
   }
 }
 
-void transmitdatatodisplay(uint8_t data, int lines){
-  for(int i=1; i<lines+1; i++){
+void transmitdatatodisplay(int lines){
+  for(int i=0; i<lines; i++){
     Serial.print(i);
     Serial.flush();
-    receivePacket();
-    for(int i=0; i<35; i++){
-      for(int j=0; j<16 ; j++){
-        //int mult = 2*j;
-        SPI_put(linearray[(2*j)+(33*i)]);
-        SPI_put(linearray[(2*j)+(33*i)+1]);
-        Delay_us(50);
-      }
-      SPI_put(linearray[(32)+(33*i)]);
-      //Last 8 bits
-      SPI_put(0x00);
-      Delay_ms(1);
+    receiveLine();
+    for(int j=0; j<16 ; j++){
+      //int mult = 2*j;
+      SPI_put(linearray[2*j]);
+      SPI_put(linearray[(2*j)+1]);
+      Delay_us(50);
     }
+    SPI_put(linearray[32]);
+    //Last 8 bits
+    SPI_put(0x00);
+    Delay_ms(1);
    // serialFlush();
   }
 
@@ -271,5 +259,33 @@ void transmitdatatodisplay(uint8_t data, int lines){
   Serial.println("Display Sent");
   SPI.end();
   Delay_ms(250);
+  serialFlush();
+  Delay_ms(1000);
+  digitalWrite(Pin_ON, LOW);
+  serialFlush();
+}
+
+void transmitsetdatatodisplay(uint8_t data, int lines){
+  for(int i=0; i<lines; i++){
+    for(int j=0; j<16 ; j++){
+      //int mult = 2*j;
+      SPI_put(data);
+      SPI_put(data);
+      Delay_us(50);
+    }
+    SPI_put(data);
+    //Last 8 bits
+    SPI_put(0x00);
+    Delay_ms(1);
+    //serialFlush();
+  }
+
+  digitalWrite(Pin_EPD_CS, HIGH);
+  Serial.println("Display Sent");
+  SPI.end();
+  Delay_ms(250);
+  serialFlush();
+  Delay_ms(1000);
+  digitalWrite(Pin_ON, LOW);
   serialFlush();
 }

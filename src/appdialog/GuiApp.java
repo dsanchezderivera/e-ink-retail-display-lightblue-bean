@@ -448,5 +448,22 @@ public class GuiApp {
 		btnSendLabel.setBounds(370, 375, 89, 23);
 		frame.getContentPane().add(btnSendLabel);
 		
+		JButton btnNewButton_1 = new JButton("");
+		btnNewButton_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				prodImage = new ProductImg(productos.get(comboProductsBox.getSelectedIndex()));
+				try {
+					HttpConnector conn = new HttpConnector(restURL.getText());
+					conn.sendTest(prodImage);
+				} catch (MalformedURLException ex) {
+					ex.printStackTrace();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
+		btnNewButton_1.setBounds(484, 156, 21, 23);
+		frame.getContentPane().add(btnNewButton_1);
+		
 	}
 }
