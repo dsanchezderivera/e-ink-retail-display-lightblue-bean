@@ -37,70 +37,93 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.client_address[0], varLen)
             # The image data received
             data = self.rfile.read(varLen)
+            # compress!!
+            dataRLE = compressIt(data)
 
-            # Binary!!!
-            binary = bin(int(binascii.hexlify(data), 16))
-            print binary
-            #
+            # print data
+            print "Sending Image to LBB"
+            # Send to the LBB first string which indicates a image
+            if len(dataRLE) > 2300:
+                ser.write("image\n")
+                # First response from Lbb indicates wating for the first line
+                print "Waiting response from LBB"
+                enviando = True
+                while enviando:
+                    datarcv = ser.read(1)  # read one, blocking
+                    n = ser.inWaiting()    # look if there is more
+                    if n:
+                        # and get as much as possible
+                        datarcv = datarcv + ser.read(n)
+                    if datarcv:
+                        print "LBB response: {}".format(datarcv)
+                        # if float, send line
+                        if isfloat(datarcv):
+                            print "Is float"
+                            print "Sending data packet: {}".format(datarcv)
+                            index = int(datarcv)
+                            if (index == 0):
+                                print "Eneviando primera linea"
+                                tmpString = data[0:33]
+                                ser.write(tmpString)
+                            else:
+                                print "Sending data packet: {}".format(index)
+                                tmpString = data[(((index-1)*1155)+33):((((
+                                    index-1)*1155)+1155)+33)]
+                                ser.write(tmpString)
+                            if((index) == 5):
+                                enviando = False
+                        else:
+                            print "Not float"
+            else:
+                ser.write("cmage\n")
+                # First response from Lbb indicates wating for the first line
+                print "Waiting response from LBB"
+                enviando = True
+                while enviando:
+                    datarcv = ser.read(1)  # read one, blocking
+                    n = ser.inWaiting()    # look if there is more
+                    if n:
+                        # and get as much as possible
+                        datarcv = datarcv + ser.read(n)
+                    if datarcv:
+                        print "LBB response: {}".format(datarcv)
+                        if datarcv == "fin":
+                            enviando = False
+                        elif datarcv == "data":
+                            print "Enviando tamaño paquete: {}".format(
+                                len(dataRLE))
+                            ser.write(dataRLE)
+                        elif datarcv == "packet":
+                            print "Enviando paquete"
+                            ser.write(dataRLE)
+                            print "paquete enviado"
+            print "Finish!"
 
-            # # print data
-            # print "Sending Image to LBB"
-            # # Send to the LBB first string which indicates a image
-            # ser.write("image\n")
-            # # First response from Lbb indicates wating for the first line
-            # keep = 0
-            # print "Waiting response from LBB"
-            # enviando = True
-            # while enviando:
-            #     datarcv = ser.read(1)  # read one, blocking
-            #     n = ser.inWaiting()    # look if there is more
-            #     if n:
-            #         # and get as much as possible
-            #         datarcv = datarcv + ser.read(n)
-            #     if datarcv:
-            #         print "LBB response: {}".format(datarcv)
-            #         # if float, send line
-            #         if isfloat(datarcv):
-            #             # keep = keep+1
-            #             print "Is float"
-            #             print "Sending data packet: {}".format(datarcv)
-            #             index = int(datarcv)
-            #             if (index == 0):
-            #                 print "Eneviando primera linea"
-            #                 tmpString = data[0:33]
-            #                 ser.write(tmpString)
-            #             else:
-            #                 print "Sending data packet: {}".format(index)
-            #                 tmpString = data[(((index-1)*1155)+33):((((
-            #                     index-1)*1155)+1155)+33)]
-            #                 ser.write(tmpString)
-            #             if((index) == 5):
-            #                 enviando = False
-            #         else:
-            #             print "Not float"
-            # print "Finish!"
 
-
-def runlen(s):
-    r = ""
-    l = len(s)
-    if l == 0:
-        return ""
-    if l == 1:
-        return s + "1"
-
-    last = s[0]
-    cnt = 1
-    i = 1
-    while i < l:
-        if s[i] == s[i - 1]:  # check it is the same letter
+def compressIt(s):
+    b = bytearray()
+    compress = bytearray()
+    b.extend(s)
+    a = BitArray(b)
+    binstring = a.bin
+    uncompressed = 1
+    index = 0
+    while uncompressed:
+        cnt = 0
+        pixel = a[index]
+        while ((index < a.length) & (pixel == a[index])) & (cnt < 255):
+            index += 1
             cnt += 1
-        else:
-            r = r + s[i - 1] + str(cnt)  # if not, store the previous data
-            cnt = 1
-        i += 1
-    r = r + s[i - 1] + str(cnt)
-    return r
+            if index == a.length:
+                uncompressed = 0
+                break
+        tempint = cnt
+        if pixel:
+            tempint = cnt + 128
+        compress.append(tempint)
+    print "Sin comprimir: {}".format(len(b))
+    print "Comprimido: {}".format(len(compress))
+    return compress
 
 
 def reader():

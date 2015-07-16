@@ -27,50 +27,33 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.client_address[0], varLen)
             # The image data received
             data = self.rfile.read(varLen)
-            b = bytearray()
-            compress = bytearray()
-            b.extend(data)
-            a = BitArray(b)
-            binstring = a.bin
-            uncompressed = 1
-            index = 0
-            while uncompressed:
-                cnt = 0
-                pixel = a[index]
-                while ((index < a.length) & (pixel == a[index])) & (cnt < 255):
-                    index += 1
-                    cnt += 1
-                    if index == a.length:
-                        uncompressed = 0
-                        break
-                tempint = cnt
-                if pixel:
-                    tempint = cnt + 128
-                compress.append(tempint)
-            print "Sin comprimir: {}".format(len(b))
-            print "Comprimido: {}".format(len(compress))
+            dataRLE = compressIt(data)
 
 
-def runlen(s):
-    r = ""
-    l = len(s)
-    if l == 0:
-        return ""
-    if l == 1:
-        return s + "1"
-
-    last = s[0]
-    cnt = 1
-    i = 1
-    while i < l:
-        if s[i] == s[i - 1]:  # check it is the same letter
+def compressIt(s):
+    b = bytearray()
+    compress = bytearray()
+    b.extend(s)
+    a = BitArray(b)
+    binstring = a.bin
+    uncompressed = 1
+    index = 0
+    while uncompressed:
+        cnt = 0
+        pixel = a[index]
+        while ((index < a.length) & (pixel == a[index])) & (cnt < 255):
+            index += 1
             cnt += 1
-        else:
-            r = r + s[i - 1] + str(cnt)  # if not, store the previous data
-            cnt = 1
-        i += 1
-    r = r + s[i - 1] + str(cnt)
-    return r
+            if index == a.length:
+                uncompressed = 0
+                break
+        tempint = cnt
+        if pixel:
+            tempint = cnt + 128
+        compress.append(tempint)
+    print "Sin comprimir: {}".format(len(b))
+    print "Comprimido: {}".format(len(compress))
+    return compress
 
 
 def tobits(s):

@@ -79,51 +79,6 @@ void loop()
         Serial.println( "< world >" ); 
       }
 
-      // request temperature data
-      else if ( !strncmp( buffer, "temp", 4 ) )
-      {
-        int8_t newTemp = Bean.getTemperature();
-        Serial.println( String("< Temperature: ") + String(newTemp) + "c >" );
-      }
-
-      // request accelerometer data
-      else if ( !strncmp( buffer, "acc", 3 ) )
-      {
-        int8_t x = Bean.getAccelerationX();
-        int8_t y = Bean.getAccelerationY();
-        int8_t z = Bean.getAccelerationZ();
-        Serial.println( String("< Accelerometer: ") + String(x) +","+ String(y) +","+ String(z) + " >" );
-      }
-
-      // setting the LED color
-      else if ( !strncmp( buffer, "led", 3 ) )
-      {
-        char temp[64];
-
-        char *tok = buffer;
-        char *param = NULL;
-        param = strtok_r( tok, " ", &tok ); // first is the "led" command
-        uint8_t r = atoi( strtok_r( tok, " ", &tok ) ); // red
-        uint8_t g = atoi( strtok_r( tok, " ", &tok ) ); // green
-        uint8_t b = atoi( strtok_r( tok, " ", &tok ) ); // blue
-
-        Bean.setLed( r, g, b );
-        oldLed = Bean.getLed();
-        Serial.println( String("< LED set to ") + String(r) +","+ String(g) +","+ String(b) + " >" );
-      }
-
-      // blink
-      else if ( !strncmp( buffer, "blink", 5 ) )
-      {
-        doBlink = !doBlink;
-        if ( doBlink && ( Bean.getLedRed() + Bean.getLedGreen() + Bean.getLedBlue() == 0 ) )
-          Bean.setLed( 255, 255, 255 );
-        else if ( !doBlink )
-          Bean.setLed( 0, 0, 0 );
-        oldLed = Bean.getLed();
-        Serial.println( String("< Blink ") + (doBlink?"ON":"OFF") + " >" );
-      }
-
       // White -> send white to display
       else if ( !strncmp( buffer, "white", 5 ) )
       {

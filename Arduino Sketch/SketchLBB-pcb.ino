@@ -44,13 +44,13 @@ void setup()
 
   digitalWrite(Pin_EPD_RESET, LOW);
   digitalWrite(Pin_EPD_CS, LOW);
-  digitalWrite(Pin_ON, LOW);
+  digitalWrite(Pin_ON, HIGH);
 
   // initialize serial communication at 57600 bits per second:
   Serial.begin(57600);
 
   // on readBytes, return after 25ms or when the buffer is full
-  Serial.setTimeout(200);
+  Serial.setTimeout(300);
 }
 
 
@@ -128,6 +128,7 @@ void loop()
       // White -> send white to display
       else if ( !strncmp( buffer, "white", 5 ) )
       {
+        digitalWrite(Pin_ON, LOW);
         Serial.println("Start!");
         sendparameterstodisplay(false);
         transmitsetdatatodisplay(0x00,176);
@@ -136,6 +137,7 @@ void loop()
       // White -> send white to display
       else if ( !strncmp( buffer, "black", 5 ) )
       {
+        digitalWrite(Pin_ON, LOW);
         Serial.println("Start!");
         sendparameterstodisplay(false);
         transmitsetdatatodisplay(0xFF, 176);
@@ -143,7 +145,7 @@ void loop()
       // Image -> send Image to display
       else if ( !strncmp( buffer, "image", 5 ) )
       {
-        digitalWrite(Pin_ON, HIGH);
+        digitalWrite(Pin_ON, LOW);
         Delay_ms(500);
         Serial.println("image command received... starting");
         Serial.flush();
@@ -238,7 +240,7 @@ void sendparameterstodisplay(bool isImage){
 }
 
 void transmitdatatodisplay(int lines){
-  for(int i=0; i<lines; i++){
+  for(int i=1; i<lines+1; i++){
     Serial.print(i);
     Serial.flush();
     receiveLine();
@@ -261,7 +263,7 @@ void transmitdatatodisplay(int lines){
   Delay_ms(250);
   serialFlush();
   Delay_ms(1000);
-  digitalWrite(Pin_ON, LOW);
+  digitalWrite(Pin_ON, HIGH);
   serialFlush();
 }
 
@@ -285,7 +287,7 @@ void transmitsetdatatodisplay(uint8_t data, int lines){
   SPI.end();
   Delay_ms(250);
   serialFlush();
-  Delay_ms(1000);
-  digitalWrite(Pin_ON, LOW);
+  Delay_ms(2500);
+  digitalWrite(Pin_ON, HIGH);
   serialFlush();
 }
