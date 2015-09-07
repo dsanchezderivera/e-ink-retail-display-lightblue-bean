@@ -22,7 +22,6 @@ import javax.swing.JCheckBox;
 import java.awt.Font;
 
 import javax.swing.JTextField;
-import javax.swing.JTextArea;
 
 
 public class GuiApp {
@@ -52,6 +51,11 @@ public class GuiApp {
 	
 	private SerialInterface serialInterface;
 	private JTextField restURL;
+	private JTextField textFieldProductName;
+	private JTextField textFieldManufacturer;
+	private JTextField textFieldPrice;
+	private JTextField textFieldPriceDetails;
+	private JTextField textFieldUnits;
 
 	
 	
@@ -92,7 +96,7 @@ public class GuiApp {
 	
 	public ArrayList<Product> createProducts(){
 		ArrayList<Product> products = new ArrayList<Product>();
-		products.add(new Product(1, "Product 1", "Orlando", 1.50, "15,75€/Litro", "150ml", ""));
+		products.add(new Product(1, "Tomate Frito", "Orlando", 1.50, "15,75€/Litro", "150ml", ""));
 		products.add(new Product(2, "Manzana Golden", "Hacendado", 0.75, "4,5€/Kg", "250gr", ""));
 		products.add(new Product(3, "Leche Entera", "Pascual", 0.89, "0,89€/Litro", "1L", ""));
 		products.add(new Product(4, "Patatas Bolsa", "Lays", 0.65, "17€/Kg", "250gr", ""));
@@ -100,6 +104,7 @@ public class GuiApp {
 	}
 	
 	public void rellenaProductsBox(ArrayList<Product> products){
+		comboProductsBox.addItem("Custom Product");
 		for (Product p : products){
 			comboProductsBox.addItem(p.getName());
 			comboBoxetiqueta1config.addItem(p.getName());
@@ -248,11 +253,11 @@ public class GuiApp {
 		frame.getContentPane().add(btnEnviarEtq);
 		
 		comboProductsBox = new JComboBox();
-		comboProductsBox.setBounds(351, 81, 129, 20);
+		comboProductsBox.setBounds(330, 345, 129, 20);
 		frame.getContentPane().add(comboProductsBox);
 		
 		JLabel lblProducto = new JLabel("Product:");
-		lblProducto.setBounds(351, 56, 89, 14);
+		lblProducto.setBounds(255, 348, 65, 14);
 		frame.getContentPane().add(lblProducto);
 		
 		JSeparator separator = new JSeparator();
@@ -392,8 +397,8 @@ public class GuiApp {
 		btnCheckConn.setBounds(25, 341, 104, 23);
 		frame.getContentPane().add(btnCheckConn);
 		
-		JLabel lblNotFound = new JLabel("Not found!");
-		lblNotFound.setBounds(153, 345, 65, 14);
+		JLabel lblNotFound = new JLabel("OK");
+		lblNotFound.setBounds(100, 321, 65, 14);
 		frame.getContentPane().add(lblNotFound);
 		
 		restURL = new JTextField();
@@ -406,12 +411,9 @@ public class GuiApp {
 		lblUrl.setBounds(197, 321, 21, 14);
 		frame.getContentPane().add(lblUrl);
 		
-		JTextArea textArea = new JTextArea();
-		textArea.setBounds(10, 430, 497, 139);
-		frame.getContentPane().add(textArea);
-		
-		JLabel lblResponses = new JLabel("Responses");
-		lblResponses.setBounds(10, 409, 80, 14);
+		JLabel lblResponses = new JLabel("Custom Product");
+		lblResponses.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblResponses.setBounds(10, 409, 119, 14);
 		frame.getContentPane().add(lblResponses);
 		
 		JButton btnSendImage = new JButton("Send Image");
@@ -434,10 +436,24 @@ public class GuiApp {
 		JButton btnSendLabel = new JButton("Send Label");
 		btnSendLabel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				prodImage = new ProductImg(productos.get(comboProductsBox.getSelectedIndex()));
+				if(comboProductsBox.getSelectedIndex() == 0){
+					prodImage = new ProductImg(
+							new Product(
+									5,
+									textFieldProductName.getText(),
+									textFieldManufacturer.getText(),
+									Double.parseDouble(textFieldPrice.getText()),
+									textFieldPriceDetails.getText(),
+									textFieldUnits.getText(),
+									""
+									));
+				}
+				else{
+					prodImage = new ProductImg(productos.get(comboProductsBox.getSelectedIndex()));
+				}
 				try {
 					HttpConnector conn = new HttpConnector(restURL.getText());
-					conn.sendImage(drawimage);
+					conn.sendImage(prodImage);
 				} catch (MalformedURLException ex) {
 					ex.printStackTrace();
 				} catch (Exception ex) {
@@ -464,6 +480,51 @@ public class GuiApp {
 		});
 		btnNewButton_1.setBounds(484, 156, 21, 23);
 		frame.getContentPane().add(btnNewButton_1);
+		
+		JLabel lblProductName = new JLabel("Product Name:");
+		lblProductName.setBounds(25, 434, 89, 14);
+		frame.getContentPane().add(lblProductName);
+		
+		JLabel lblManufacturer = new JLabel("Manufacturer:");
+		lblManufacturer.setBounds(25, 459, 89, 14);
+		frame.getContentPane().add(lblManufacturer);
+		
+		JLabel lblPrice = new JLabel("Price:");
+		lblPrice.setBounds(25, 484, 46, 14);
+		frame.getContentPane().add(lblPrice);
+		
+		JLabel lblPriceDetails = new JLabel("Price details:");
+		lblPriceDetails.setBounds(25, 509, 75, 14);
+		frame.getContentPane().add(lblPriceDetails);
+		
+		JLabel lblUnits = new JLabel("Units:");
+		lblUnits.setBounds(25, 534, 46, 14);
+		frame.getContentPane().add(lblUnits);
+		
+		textFieldProductName = new JTextField();
+		textFieldProductName.setBounds(114, 434, 345, 20);
+		frame.getContentPane().add(textFieldProductName);
+		textFieldProductName.setColumns(10);
+		
+		textFieldManufacturer = new JTextField();
+		textFieldManufacturer.setBounds(114, 456, 345, 20);
+		frame.getContentPane().add(textFieldManufacturer);
+		textFieldManufacturer.setColumns(10);
+		
+		textFieldPrice = new JTextField();
+		textFieldPrice.setBounds(114, 481, 345, 20);
+		frame.getContentPane().add(textFieldPrice);
+		textFieldPrice.setColumns(10);
+		
+		textFieldPriceDetails = new JTextField();
+		textFieldPriceDetails.setBounds(114, 506, 345, 20);
+		frame.getContentPane().add(textFieldPriceDetails);
+		textFieldPriceDetails.setColumns(10);
+		
+		textFieldUnits = new JTextField();
+		textFieldUnits.setBounds(114, 531, 345, 20);
+		frame.getContentPane().add(textFieldUnits);
+		textFieldUnits.setColumns(10);
 		
 	}
 }

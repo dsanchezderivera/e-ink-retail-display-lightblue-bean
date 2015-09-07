@@ -20,9 +20,10 @@ LedReading oldLed;
 const uint8_t HEADER_BYTE_1 = 0x03;
 const uint8_t HEADER_BYTE_2 = 0xA0;
 
-const int Pin_EPD_RESET = 0;
-const int Pin_EPD_CS = 1;
-const int Pin_EPD_BUSY = 2;
+const int Pin_EPD_RESET = 1;
+const int Pin_EPD_CS = 2;
+//const int Pin_EPD_BUSY = A1;
+const int Pin_ON = 0;
 
 char linearray[1155];
 
@@ -41,15 +42,15 @@ void setup()
   pinMode(Pin_EPD_CS, OUTPUT);
   pinMode(Pin_EPD_RESET, OUTPUT);
   //pinMode(Pin_EPD_BUSY, INPUT);
-
+  pinMode(Pin_ON, OUTPUT);
   digitalWrite(Pin_EPD_RESET, LOW);
   digitalWrite(Pin_EPD_CS, LOW);
-
+  digitalWrite(Pin_ON, HIGH);
   // initialize serial communication at 57600 bits per second:
   Serial.begin(57600);
 
   // on readBytes, return after 25ms or when the buffer is full
-  Serial.setTimeout(200);
+  Serial.setTimeout(300);
 }
 
 
@@ -82,6 +83,7 @@ void loop()
       // White -> send white to display
       else if ( !strncmp( buffer, "white", 5 ) )
       {
+        digitalWrite(Pin_ON, LOW);
         Serial.println("Start!");
         sendparameterstodisplay(false);
         transmitdatatodisplay(0x00,176);
@@ -90,6 +92,7 @@ void loop()
       // White -> send white to display
       else if ( !strncmp( buffer, "black", 5 ) )
       {
+        digitalWrite(Pin_ON, LOW);
         Serial.println("Start!");
         sendparameterstodisplay(false);
         transmitdatatodisplay(0xFF, 176);
@@ -97,6 +100,7 @@ void loop()
       // Image -> send Image to display
       else if ( !strncmp( buffer, "image", 5 ) )
       {
+        digitalWrite(Pin_ON, LOW);
         Delay_ms(500);
         Serial.println("image command received... starting");
         Serial.flush();
@@ -226,5 +230,8 @@ void transmitdatatodisplay(uint8_t data, int lines){
   Serial.println("Display Sent");
   SPI.end();
   Delay_ms(250);
+  serialFlush();
+  Delay_ms(2500);
+  digitalWrite(Pin_ON, HIGH);
   serialFlush();
 }
